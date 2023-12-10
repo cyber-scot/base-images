@@ -7,43 +7,31 @@ on:
       working_directory:
         type: string
         description: What working directory should be passed to the script
-        default: (Get-Location).Path
-      run_terraform_init:
+        default: "$(Get-Location)/containers/ubuntu"
+      run_packer_init:
         type: boolean
-        description: 'Whether terraform init should be ran'
+        description: 'Run Packer init?'
         default: true
-      run_terraform_plan:
+      run_packer_validate:
         type: boolean
-        description: 'Whether terraform plan should be ran'
+        description: 'Run Packer validate?'
         default: true
-      run_terraform_plan_destroy:
+      run_packer_build:
         type: boolean
-        description: 'Whether terraform plan destroy should be ran'
-        default: false
-      run_terraform_apply:
-        type: boolean
-        description: 'Whether terraform apply should be ran'
-        default: false
-      run_terraform_destroy:
-        type: boolean
-        description: 'Whether terraform destroy should be ran'
-        default: false
+        description: 'Run Packer build?'
+        default: true
       enable_debug_mode:
         type: boolean
         description: 'Whether debug mode should be enable for within the script'
         default: true
-      delete_plan_files:
-        type: boolean
-        description: 'Whether the tfplan files should be auto deleted'
-        default: true
-      terraform_version:
+      packer_version:
         type: string
-        description: 'What version should tfenv attempt to use?'
+        description: 'Packer version to attempt install'
         default: latest
-      terraform_state_name:
+      packer_file_name:
         type: string
-        description: 'Name of the Terraform state file'
-        default: 'cscot-dev.terraform.tfstate'
+        description: 'Packer file name?'
+        default: "packer.pkr.hcl"
 
 jobs:
   run-script:
@@ -61,24 +49,14 @@ jobs:
         id: run-script
         shell: pwsh
         run: |
-          .\Run-Terraform.ps1 `
+          .\Run-Packer.ps1 `
             -WorkingDirectory ${{ inputs.working_directory }} `
-            -RunTerraformInit ${{ inputs.run_terraform_init }} `
-            -RunTerraformPlan ${{ inputs.run_terraform_plan }} `
-            -RunTerraformPlanDestroy ${{ inputs.run_terraform_plan_destroy }} `
-            -RunTerraformApply ${{ inputs.run_terraform_apply }} `
-            -RunTerraformDestroy ${{ inputs.run_terraform_destroy }} `
+            -RunPackerInit ${{ inputs.run_packer_init }} `
+            -RunPackerValidate ${{ inputs.run_packer_validate }} `
+            -RunPackerBuild ${{ inputs.run_packer_build }} `
             -DebugMode ${{ inputs.enable_debug_mode }} `
-            -DeletePlanFiles ${{ inputs.delete_plan_files }} `
-            -TerraformVersion ${{ inputs.terraform_version }} `
-            -BackendStorageSubscriptionId ${{ secrets.SpokeSubId }} `
-            -BackendStorageResourceGroupName ${{ secrets.SpokeSaRgName }} `
-            -BackendStorageAccountName ${{ secrets.SpokeSaName }} `
-            -BackendStorageAccountBlobContainerName ${{ secrets.SpokeSaBlobContainerName }} `
-            -TerraformStateName ${{ inputs.terraform_state_name }}
+            -PackerVersion ${{ inputs.packer_version }} `
+            -PackerFileName ${{ inputs.packer_file_name }} `
         env:
-          ARM_CLIENT_ID: ${{ secrets.SpokeSvpClientId }}
-          ARM_CLIENT_SECRET: ${{ secrets.SpokeSvpClientSecret }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.SpokeSubId }}
-          ARM_TENANT_ID: ${{ secrets.SpokeTenantId }}
-          ARM_USE_AZUREAD: true
+          PKR_VAR_registry_username:
+          PKR_VAR_registry_password:

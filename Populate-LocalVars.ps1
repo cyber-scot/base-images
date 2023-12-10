@@ -2,19 +2,13 @@
 # Define a hashtable with key-value pairs for environment variables
 $predefinedVariableValues = @{
     "WORKING_DIRECTORY" = "example_working_directory"
-    "RUN_TERRAFORM_INIT" = "true"
-    "RUN_TERRAFORM_PLAN" = "true"
-    "RUN_TERRAFORM_PLAN_DESTROY" = "false"
-    "RUN_TERRAFORM_APPLY" = "false"
-    "RUN_TERRAFORM_DESTROY" = "false"
+    "RUN_PACKER_BUILD" = "true"
+    "RUN_PACKER_VALIDATE" = "true"
+    "RUN_PACKER_INIT" = "true"
     "ENABLE_DEBUG_MODE" = "true"
-    "DELETE_PLAN_FILES" = "true"
-    "TERRAFORM_VERSION" = "latest"
-    "BACKEND_STORAGE_SUBSCRIPTION_ID" = "example_subscription_id"
-    "BACKEND_STORAGE_RESOURCE_GROUP_NAME" = "example_resource_group_name"
-    "BACKEND_STORAGE_ACCOUNT_NAME" = "example_account_name"
-    "BACKEND_STORAGE_ACCOUNT_BLOB_CONTAINER_NAME" = "example_blob_container_name"
-    "TERRAFORM_STATE_NAME" = "example_state_name"
+    "PACKER_VERSION" = "latest"
+    "PKR_VAR_registry_username" = "example"
+    "PKR_VAR_registry_password" = "example"
 }
 
 # Set each predefined variable
