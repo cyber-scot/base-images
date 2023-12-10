@@ -82,7 +82,7 @@ source "docker" "ubuntu" {
   commit = true
 
   changes = [
-    "LABEL org.opencontainers.image.source=${var.repository_name}/${var.org}/${var.project}",
+    "LABEL org.opencontainers.image.source=${var.repository}/${var.org}/${var.project}",
     "LABEL org.opencontainers.image.description=${var.name}",
     "LABEL org.opencontainers.image.licenses=${var.license}"
   ]
