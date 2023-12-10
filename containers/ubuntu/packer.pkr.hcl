@@ -80,16 +80,17 @@ variable "tags" {
 source "docker" "ubuntu" {
   image  = "ubuntu:latest"
   commit = true
-}
-
-build {
-  sources = ["source.docker.ubuntu"]
 
   changes = [
     "LABEL org.opencontainers.image.source=${var.repository_name}/${var.org}/${var.project}",
     "LABEL org.opencontainers.image.description=${var.name}",
     "LABEL org.opencontainers.image.licenses=${var.license}"
   ]
+}
+
+build {
+  sources = ["source.docker.ubuntu"]
+
   provisioner "shell" {
     inline = [
       "rm -rf /bin/sh && ln -sf /bin/bash /bin/sh",
