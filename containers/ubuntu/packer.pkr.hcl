@@ -19,6 +19,12 @@ variable "container_name" {
   default     = "ci-cd-base"
 }
 
+variable "license" {
+  description = "The license used"
+  type        = string
+  default     = "MIT"
+}
+
 variable "name" {
   description = "The name of the image"
   type        = string
@@ -59,6 +65,12 @@ variable "registry_username" {
   type        = string
 }
 
+variable "repository" {
+  description = "The name of the base repository"
+  type        = string
+  default     = "https://github.com"
+}
+
 variable "tags" {
   description = "The list of tags to deploy"
   type        = list(string)
@@ -73,12 +85,16 @@ source "docker" "ubuntu" {
 build {
   sources = ["source.docker.ubuntu"]
 
+  changes = [
+    "LABEL org.opencontainers.image.source=${var.repository_name}/${var.org}/${var.project}",
+    "LABEL org.opencontainers.image.description=${var.name}",
+    "LABEL org.opencontainers.image.licenses=${var.license}"
+  ]
   provisioner "shell" {
     inline = [
       "rm -rf /bin/sh && ln -sf /bin/bash /bin/sh",
       "apt-get update",
       "apt-get install -y software-properties-common",
-      // Add other provisioning commands here
     ]
   }
 
