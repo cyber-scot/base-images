@@ -19,6 +19,12 @@ variable "container_name" {
   default     = "ci-cd-base"
 }
 
+variable "name" {
+  description = "The name of the image"
+  type        = string
+  default     = "cicd-base"
+}
+
 variable "normal_user" {
   description = "Normal user"
   type        = string
@@ -78,7 +84,7 @@ build {
 
   post-processors {
     post-processor "docker-tag" {
-      repository = format("%s/%s/%s", var.registry, var.org, var.project)
+      repository = format("%s/%s/%s/%s", var.registry, var.org, var.project, var.name)
       tags       = distinct(var.tags)
     }
 
