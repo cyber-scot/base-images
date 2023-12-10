@@ -58,5 +58,5 @@ jobs:
             -PackerVersion ${{ inputs.packer_version }} `
             -PackerFileName ${{ inputs.packer_file_name }} `
         env:
-          PKR_VAR_registry_username:
-          PKR_VAR_registry_password:
+          PKR_VAR_registry_username: ${{ secrets.RegistryUsername }}
+          PKR_VAR_registry_password: ${{ secrets.RegistryPassword }}
