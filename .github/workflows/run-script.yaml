@@ -51,7 +51,7 @@ jobs:
         run: |
           $workingDirectory = Join-Path -Path "${{ github.workspace }}" -ChildPath "${{ inputs.working_directory }}"
           .\Run-Packer.ps1 `
-            -WorkingDirectory ${{ inputs.working_directory }} `
+            -WorkingDirectory $workingDirectory `
             -RunPackerInit ${{ inputs.run_packer_init }} `
             -RunPackerValidate ${{ inputs.run_packer_validate }} `
             -RunPackerBuild ${{ inputs.run_packer_build }} `
