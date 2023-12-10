@@ -121,7 +121,7 @@ try {
     Set-Location -Path $WorkingDirectory
 }
 catch {
-    Write-Error "Error: Unable to change to directory: $WorkingDirectory" -ForegroundColor Red
+    Write-Error "Error: Unable to change to directory: $WorkingDirectory"
     exit 1
 }
 
@@ -136,12 +136,12 @@ function Run-PackerInit {
                 return $true
             }
             else {
-                Write-Error "Error: Packer init failed with exit code $LASTEXITCODE" -ForegroundColor Red
+                Write-Error "Error: Packer init failed with exit code $LASTEXITCODE"
                 return $false
             }
         }
         catch {
-            Write-Error "Error: Packer init encountered an exception" -ForegroundColor Red
+            Write-Error "Error: Packer init encountered an exception"
             return $false
         }
     }
@@ -179,12 +179,12 @@ function Run-PackerBuild {
                 return $true
             }
             else {
-                Write-Error "Error: Packer build failed with exit code $LASTEXITCODE" -ForegroundColor Red
+                Write-Error "Error: Packer build failed with exit code $LASTEXITCODE"
                 return $false
             }
         }
         catch {
-            Write-Error "Error: Packer build encountered an exception" -ForegroundColor Red
+            Write-Error "Error: Packer build encountered an exception"
             return $false
         }
     }

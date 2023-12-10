@@ -76,15 +76,17 @@ build {
     ]
   }
 
-  post-processor "docker-tag" {
-    repository = format("%s/%s/%s", var.registry, var.org, var.project)
-    tags       = distinct(var.tags)
-  }
+  post-processors {
+    post-processor "docker-tag" {
+      repository = format("%s/%s/%s", var.registry, var.org, var.project)
+      tags       = distinct(var.tags)
+    }
 
-  post-processor "docker-push" {
-    login          = true
-    login_server   = var.registry
-    login_username = var.registry_username
-    login_password = var.registry_password
+    post-processor "docker-push" {
+      login          = true
+      login_server   = var.registry
+      login_username = var.registry_username
+      login_password = var.registry_password
+    }
   }
 }
