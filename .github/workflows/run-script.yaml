@@ -49,6 +49,7 @@ jobs:
         id: run-script
         shell: pwsh
         run: |
+          $workingDirectory = Join-Path -Path "${{ github.workspace }}" -ChildPath "${{ inputs.working_directory }}"
           .\Run-Packer.ps1 `
             -WorkingDirectory ${{ inputs.working_directory }} `
             -RunPackerInit ${{ inputs.run_packer_init }} `
