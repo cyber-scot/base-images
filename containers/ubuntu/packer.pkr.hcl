@@ -119,7 +119,9 @@ source "docker" "ubuntu" {
     format("ENV NORMAL_USER_HOME=/home/%s", var.normal_user),
     format("ENV DEBIAN_FRONTEND=%s", "noninteractive"),
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
-    "ENV $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
+    "ENV $PYENV_ROOT/shims:$PYENV_ROOT/bin:${local.path_var}",
+    "USER ${var.normal_user}",
+    "WORKDIR /home/${var.normal_user}"
   ]
 }
 
@@ -142,7 +144,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
@@ -179,7 +181,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
@@ -190,7 +192,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
@@ -203,6 +205,8 @@ build {
   }
 
   provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "chown -R ${var.normal_user}:${var.normal_user} /opt",
       "chown -R ${var.normal_user}:${var.normal_user} /home/${var.normal_user}",
@@ -212,6 +216,27 @@ build {
       "rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
     ]
   }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "pip3 install --user pipenv virtualenv terraform-compliance checkov pywinrm",
+      "pip3 install --user azure-cli"
+    ]
+}
+
+provisioner "shell" {
+  environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}"]
+  execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
+  inline = [
+    "echo -en '\\n' | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+    "echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' >> /home/${var.normal_user}/.bashrc",
+    "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"",
+    "brew install gcc",
+    "brew install tfsec"
+  ]
+}
 
   post-processors {
     post-processor "docker-tag" {
