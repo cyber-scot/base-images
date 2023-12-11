@@ -185,7 +185,6 @@ build {
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
-      "source /home/${var.normal_user}/.tfenv/bin/tfenv",
       "tfenv install",
       "tfenv use"
     ]
