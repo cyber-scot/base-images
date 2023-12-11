@@ -65,7 +65,7 @@ RUN useradd -ms /bin/bash ${NORMAL_USER} && \
 # Install pyenv and the latest stable version of Python
 RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && \
     eval "$(pyenv init --path)" && \
-    pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E "^  [0-9]" | grep -vE 'dev|alpha|beta|rc' | tail -1) && \
+    pyenvLatestStable=$(pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E "^\s*[0-9]+\.[0-9]+\.[0-9]+$" | tail -1) && \
     pyenv install $pyenvLatestStable && \
     pyenv global $pyenvLatestStable && \
     pip install --upgrade pip
@@ -96,11 +96,8 @@ RUN git clone https://github.com/iamhsa/pkenv.git /home/${NORMAL_USER}/.pkenv &&
     pkenv install ${PACKER_LATEST_VERSION} && \
     pkenv use ${PACKER_LATEST_VERSION}
 
-COPY start.sh /home/${NORMAL_USER}/start.sh
-
 RUN chown -R ${NORMAL_USER}:${NORMAL_USER} /opt && \
     chown -R ${NORMAL_USER}:${NORMAL_USER} /home/${NORMAL_USER} && \
-    chmod +x /home/${NORMAL_USER}/start.sh && \
     apt-get update && \
     apt-get autoremove -y && \
     apt-get clean && \

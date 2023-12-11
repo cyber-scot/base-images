@@ -1,20 +1,87 @@
+<#
+.SYNOPSIS
+    This script automates Docker operations including building and optionally pushing a Docker image to a specified registry.
+
+.DESCRIPTION
+    'Run-Docker.ps1' is a PowerShell script designed for automating Docker tasks. It includes functionalities for building a Docker image from a specified Dockerfile and optionally pushing this image to a Docker registry. The script is flexible and allows users to specify various parameters such as the Dockerfile name, image name, container name, registry details, and working directory.
+
+.PARAMETERS
+    DockerFileName
+        The name of the Dockerfile to be used for building the Docker image. Default is 'Dockerfile'.
+
+    DockerImageName
+        The name to be assigned to the built Docker image. Default is 'example'.
+
+    DockerContainerName
+        The name of the Docker container. Default is 'ubuntu'.
+
+    RegistryUrl
+        The URL of the Docker registry where the image should be pushed. Default is 'ghcr.io'.
+
+    RegistryUsername
+        The username for the Docker registry.
+
+    RegistryPassword
+        The password for the Docker registry.
+
+    WorkingDirectory
+        The directory where the Dockerfile is located and where Docker commands will be executed.
+
+    DebugMode
+        Enables or disables debug mode. Accepts 'true' or 'false'. Default is 'false'.
+
+    PushDockerImage
+        Specifies whether to push the Docker image to the registry. Accepts 'true' or 'false'. Default is 'true'.
+
+.FUNCTIONS
+    Convert-ToBoolean
+        Converts string parameters to boolean values.
+
+    Check-DockerExists
+        Checks if Docker is installed and available in the system's PATH.
+
+    Build-DockerImage
+        Builds a Docker image using the specified Dockerfile and path.
+
+    Push-DockerImage
+        Pushes the built Docker image to the specified registry.
+
+.EXAMPLE
+    ./Run-Docker.ps1 -WorkingDirectory "$(Get-Location)/containers/ubuntu" -RegistryUsername $Env:registry_username -RegistryPassword $Env:registry_password
+
+    This example demonstrates how to run the script with a specified working directory and Docker registry credentials sourced from environment variables.
+
+.NOTES
+    Ensure Docker is installed and that the provided credentials for the Docker registry are valid. The script parameters can be adjusted according to specific requirements.
+
+    Author: Craig Thacker
+    Date: 11/12/2023
+#>
+
 param (
     [string]$DockerFileName = "Dockerfile",
     [string]$DockerImageName = "example",
     [string]$DockerContainerName = "ubuntu",
+    [string]$RegistryUrl = "ghcr.io",
+    [string]$RegistryUsername = "myusername",
+    [string]$RegistryPassword = "mypassword",
     [string]$WorkingDirectory = (Get-Location).Path,
-    [string]$DebugMode = "false"
+    [string]$DebugMode = "false",
+    [string]$PushDockerImage = "true"
 )
 
-# Function to check if the Dockerfile exists
-function Check-DockerFileExists {
-    $filePath = Join-Path -Path $WorkingDirectory -ChildPath $DockerFileName
-    if (-not (Test-Path -Path $filePath)) {
-        Write-Error "Error: Dockerfile not found at $filePath. Exiting."
-        exit 1
+# Function to convert string to boolean
+function Convert-ToBoolean($value) {
+    $valueLower = $value.ToLower()
+    if ($valueLower -eq "true") {
+        return $true
+    }
+    elseif ($valueLower -eq "false") {
+        return $false
     }
     else {
-        Write-Host "Success: Dockerfile found at: $filePath" -ForegroundColor Green
+        Write-Error "Error: Invalid value - $value. Exiting."
+        exit 1
     }
 }
 
@@ -32,9 +99,22 @@ function Check-DockerExists {
 
 # Function to build a Docker image
 function Build-DockerImage {
+    param (
+        [string]$Path,
+        [string]$DockerFile
+    )
+
+    $filePath = Join-Path -Path $Path -ChildPath $DockerFile
+
+    # Check if Dockerfile exists at the specified path
+    if (-not (Test-Path -Path $filePath)) {
+        Write-Error "Error: Dockerfile not found at $filePath. Exiting."
+        exit 1
+    }
+
     try {
-        Write-Host "Info: Building Docker image $DockerImageName from $DockerFileName" -ForegroundColor Green
-        docker build -t $DockerImageName -f $DockerFileName | Out-Host
+        Write-Host "Info: Building Docker image $DockerImageName from $filePath" -ForegroundColor Green
+        docker build -t $DockerImageName -f $filePath $Path | Out-Host
         if ($LASTEXITCODE -eq 0) {
             return $true
         }
@@ -49,8 +129,50 @@ function Build-DockerImage {
     }
 }
 
+function Push-DockerImage {
+    param (
+        [string]$ImageName,
+        [string]$Registry,
+        [string]$Username,
+        [string]$Password
+    )
+
+    try {
+        Write-Host "Info: Logging into Docker registry $Registry" -ForegroundColor Green
+        $passwordSecure = ConvertTo-SecureString $Password -AsPlainText -Force
+        $credential = New-Object System.Management.Automation.PSCredential ($Username, $passwordSecure)
+        $credential.GetNetworkCredential().Password | docker login $Registry -u $Username --password-stdin
+
+        if ($LASTEXITCODE -eq 0) {
+            Write-Host "Info: Pushing Docker image $ImageName to $Registry" -ForegroundColor Green
+            docker push $ImageName | Out-Host
+            if ($LASTEXITCODE -eq 0) {
+                Write-Host "Success: Docker image pushed successfully." -ForegroundColor Green
+                return $true
+            }
+            else {
+                Write-Error "Error: Docker push failed with exit code $LASTEXITCODE"
+                return $false
+            }
+        }
+        else {
+            Write-Error "Error: Docker login failed with exit code $LASTEXITCODE"
+            return $false
+        }
+    }
+    catch {
+        Write-Error "Error: An exception occurred during Docker push"
+        return $false
+    }
+    finally {
+        Write-Host "Info: Logging out of Docker registry $Registry" -ForegroundColor Green
+        docker logout $Registry
+    }
+}
+
 # Convert string parameters to boolean
-$DebugMode = $DebugMode -eq "true"
+$DebugMode = Convert-ToBoolean $DebugMode
+$PushDockerImage = Convert-ToBoolean $PushDockerImage
 
 # Enable debug mode if DebugMode is set to $true
 if ($DebugMode) {
@@ -65,13 +187,22 @@ Write-Debug "DebugMode: $DebugMode"
 
 # Checking prerequisites
 Check-DockerExists
-Check-DockerFileExists
 
 # Execution flow
-$buildSuccess = Build-DockerImage | Out-Host
+$buildSuccess = Build-DockerImage -Path $WorkingDirectory -DockerFile $DockerFileName | Out-Host
 
 if ($buildSuccess -eq $true) {
     Write-Host "Docker build complete." -ForegroundColor Green
+    if ($PushDockerImage -eq $true) {
+        $pushSuccess = Push-DockerImage -ImageName "$RegistryUrl/$DockerImageName" -Registry $RegistryUrl -Username $RegistryUsername -Password $RegistryPassword
+        if ($pushSuccess -eq $true) {
+            Write-Host "Docker image push complete." -ForegroundColor Green
+        }
+        else {
+            Write-Host "Docker image push failed." -ForegroundColor Green
+            exit 1
+        }
+    }
 }
 else {
     Write-Host "Docker build failed." -ForegroundColor Green

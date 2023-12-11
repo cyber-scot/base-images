@@ -149,7 +149,7 @@ build {
     inline = [
       "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
       "eval \"$(pyenv init --path)\"",
-      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^  [0-9]\" | grep -vE 'dev|alpha|beta|rc' | tail -1)",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
       "pip install --upgrade pip"
@@ -218,26 +218,27 @@ build {
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "eval \"$(pyenv init --path)\"",
-      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^  [0-9]\" | grep -vE 'dev|alpha|beta|rc' | tail -1)",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
-      "pip install --upgrade pip"
+      "pip install --upgrade pip",
       "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
       "pip install --user azure-cli"
     ]
-}
+  }
 
-provisioner "shell" {
-  environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
-  execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
-  inline = [
-    "echo -en '\\n' | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-    "echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' >> /home/${var.normal_user}/.bashrc",
-    "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"",
-    "brew install gcc",
-    "brew install tfsec"
-  ]
-}
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "echo -en '\\n' | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
+      "echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' >> /home/${var.normal_user}/.bashrc",
+      "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"",
+      "brew install gcc",
+      "brew install tfsec"
+    ]
+  }
 
   post-processors {
     post-processor "docker-tag" {

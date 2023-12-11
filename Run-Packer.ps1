@@ -1,3 +1,70 @@
+<#
+.SYNOPSIS
+    This PowerShell script automates tasks related to Packer, including initialization, validation, and build processes.
+
+.DESCRIPTION
+    'Run-Packer.ps1' is a PowerShell script designed to streamline the use of HashiCorp's Packer tool. It checks for the necessary environment setup, such as the presence of the Packer executable and required files, and then proceeds to perform initialization, validation, and building of Packer configurations. The script is configurable via parameters to control the execution of these stages.
+
+.PARAMETERS
+    RunPackerInit
+        Specifies whether to run the Packer initialization process. Accepts 'true' or 'false'.
+
+    RunPackerValidate
+        Specifies whether to run the Packer validation process. Accepts 'true' or 'false'.
+
+    RunPackerBuild
+        Specifies whether to run the Packer build process. Accepts 'true' or 'false'.
+
+    PackerFileName
+        The name of the Packer file to be used, typically a .pkr.hcl file.
+
+    WorkingDirectory
+        The working directory where the Packer file is located and where Packer commands will be executed.
+
+    DebugMode
+        Enables or disables debug mode. Accepts 'true' or 'false'.
+
+    PackerVersion
+        Specifies the version of Packer to use. Default is 'latest'.
+
+.FUNCTIONS
+    Check-PackerFileExists
+        Checks if the specified Packer file exists in the working directory.
+
+    Check-PkenvExists
+        Verifies the presence of pkenv, a Packer version management tool.
+
+    Check-PackerExists
+        Checks if Packer is installed and available in the system's PATH.
+
+    Ensure-PackerVersion
+        Ensures that the desired version of Packer is installed using pkenv.
+
+    Convert-ToBoolean
+        Converts string parameters to boolean values.
+
+    Run-PackerInit
+        Runs the 'packer init' command with the specified options.
+
+    Run-PackerValidate
+        Executes the 'packer validate' command for the Packer file.
+
+    Run-PackerBuild
+        Performs the 'packer build' process using the specified Packer file.
+
+.EXAMPLE
+    .\Run-Packer.ps1 -RunPackerInit "true" -RunPackerValidate "true" -RunPackerBuild "true" -PackerFileName "example.pkr.hcl"
+
+    This example runs the script with all Packer processes enabled using the 'example.pkr.hcl' file.
+
+.NOTES
+    Ensure that all prerequisites, such as Packer and pkenv, are installed and properly configured before running this script.
+    Modify the script parameters based on your specific Packer setup and requirements.
+
+    Author: Craig Thacker
+    Date: 11/12/2023
+#>
+
 param (
     [string]$RunPackerInit = "true",
     [string]$RunPackerValidate = "true",
@@ -141,25 +208,24 @@ function Run-PackerInit {
                     return $false
                 }
             }
-        else
-        {
-            Write-Host "Info: Running Packer init in $WorkingDirectory" -ForegroundColor Green
-            packer init -force $PackerFileName | Out-Host
-            if ($LASTEXITCODE -eq 0) {
-                return $true
-            }
             else {
-                Write-Error "Error: Packer init failed with exit code $LASTEXITCODE"
-                return $false
+                Write-Host "Info: Running Packer init in $WorkingDirectory" -ForegroundColor Green
+                packer init -force $PackerFileName | Out-Host
+                if ($LASTEXITCODE -eq 0) {
+                    return $true
+                }
+                else {
+                    Write-Error "Error: Packer init failed with exit code $LASTEXITCODE"
+                    return $false
+                }
             }
         }
+        catch {
+            Write-Error "Error: Packer init encountered an exception"
+            return $false
+        }
     }
-    catch {
-        Write-Error "Error: Packer init encountered an exception"
-        return $false
-    }
-}
-return $false
+    return $false
 }
 
 
