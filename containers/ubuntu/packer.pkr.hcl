@@ -10,7 +10,7 @@ packer {
 variable "container_name" {
   description = "The name of the container name"
   type        = string
-  default     = "ci-cd-base"
+  default     = "ubuntu-ci-cd-base"
 }
 
 variable "license" {
@@ -22,7 +22,7 @@ variable "license" {
 variable "name" {
   description = "The name of the image"
   type        = string
-  default     = "cicd-base"
+  default     = "ubuntu-cicd-base"
 }
 
 variable "normal_user" {
@@ -217,8 +217,8 @@ build {
     environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "pip3 install --user pipenv virtualenv terraform-compliance checkov pywinrm",
-      "pip3 install --user azure-cli"
+      "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
+      "pip install --user azure-cli"
     ]
 }
 

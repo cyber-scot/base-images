@@ -1,6 +1,7 @@
 FROM ubuntu:latest
 
-LABEL org.opencontainers.image.source=https://github.com/cyber-scot/azuredevops-agents
+LABEL org.opencontainers.image.title=ubuntu-cicd-base
+LABEL org.opencontainers.image.source=https://github.com/cyber-scot/base-images
 
 RUN rm -rf /bin/sh && ln -sf /bin/bash /bin/sh
 
