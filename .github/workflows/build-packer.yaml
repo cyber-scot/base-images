@@ -1,4 +1,4 @@
-name: 'Run Script'
+name: 'Run Packer'
 
 # Allow run manually
 on:
