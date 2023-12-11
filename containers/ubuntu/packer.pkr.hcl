@@ -195,11 +195,8 @@ build {
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
-      "source /home/${var.normal_user}/.pkenv/bin/pkenv",
-      "PACKER_LATEST_URL=$(curl -sL https://releases.hashicorp.com/packer/index.json | jq -r '.versions[].builds[].url' | egrep -v 'rc|beta|alpha' | egrep 'linux.*amd64' | tail -1)",
-      "PACKER_LATEST_VERSION=$(echo \"$PACKER_LATEST_URL\" | awk -F '/' '{print $6}' | sed 's/packer_//' | sed 's/_linux_amd64.zip//')",
-      "pkenv install $PACKER_LATEST_VERSION",
-      "pkenv use $PACKER_LATEST_VERSION"
+      "pkenv install latest",
+      "pkenv use latest"
     ]
   }
 
