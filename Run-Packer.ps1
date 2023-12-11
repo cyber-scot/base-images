@@ -130,6 +130,19 @@ Check-PackerFileExists
 function Run-PackerInit {
     if ($RunPackerInit -eq $true) {
         try {
+            if ($isWindows) {
+                Write-Host "Info: Running Packer init in $WorkingDirectory" -ForegroundColor Green
+                packer init -upgrade $PackerFileName | Out-Host
+                if ($LASTEXITCODE -eq 0) {
+                    return $true
+                }
+                else {
+                    Write-Error "Error: Packer init failed with exit code $LASTEXITCODE"
+                    return $false
+                }
+            }
+        else
+        {
             Write-Host "Info: Running Packer init in $WorkingDirectory" -ForegroundColor Green
             packer init -force $PackerFileName | Out-Host
             if ($LASTEXITCODE -eq 0) {
@@ -140,12 +153,13 @@ function Run-PackerInit {
                 return $false
             }
         }
-        catch {
-            Write-Error "Error: Packer init encountered an exception"
-            return $false
-        }
     }
-    return $false
+    catch {
+        Write-Error "Error: Packer init encountered an exception"
+        return $false
+    }
+}
+return $false
 }
 
 
