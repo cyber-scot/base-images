@@ -116,7 +116,10 @@ source "docker" "ubuntu" {
     format("LABEL org.opencontainers.image.source=%s/%s/%s", var.registry, var.org, var.project),
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
-    format("ENV DEBIAN_FRONTEND=%s", "noninteractive")
+    format("ENV NORMAL_USER_HOME=/home/%s", var.normal_user),
+    format("ENV DEBIAN_FRONTEND=%s", "noninteractive"),
+    format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
+    "ENV $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH"
   ]
 }
 
@@ -136,7 +139,83 @@ build {
       "apt-get install -y ${join(" ", local.apt_packages)}",
       "echo 'PATH=${local.path_var}' > /etc/environment"
     ]
-}
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
+      "eval \"$(pyenv init --path)\"",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^  [0-9]\" | grep -vE 'dev|alpha|beta|rc' | tail -1)",
+      "pyenv install $pyenvLatestStable",
+      "pyenv global $pyenvLatestStable",
+      "pip install --upgrade pip"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "curl -sSLO https://packages.microsoft.com/config/ubuntu/$(grep -oP '(?<=^DISTRIB_RELEASE=).+' /etc/lsb-release | tr -d '\"')/packages-microsoft-prod.deb",
+      "dpkg -i packages-microsoft-prod.deb",
+      "rm -f packages-microsoft-prod.deb",
+      "apt-get update",
+      "apt-get install -y powershell",
+      "ln -sf /usr/bin/pwsh /usr/bin/powershell"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "pwsh -Command Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted",
+      "pwsh -Command Install-Module -Name Az -Force -AllowClobber -Scope AllUsers -Repository PSGallery",
+      "pwsh -Command Install-Module -Name Microsoft.Graph -Force -AllowClobber -Scope AllUsers -Repository PSGallery",
+      "pwsh -Command Install-Module -Name Pester -Force -AllowClobber -Scope AllUsers -Repository PSGallery"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
+      "source /home/${var.normal_user}/.tfenv/bin/tfenv",
+      "tfenv install",
+      "tfenv use"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
+      "source /home/${var.normal_user}/.pkenv/bin/pkenv",
+      "PACKER_LATEST_URL=$(curl -sL https://releases.hashicorp.com/packer/index.json | jq -r '.versions[].builds[].url' | egrep -v 'rc|beta|alpha' | egrep 'linux.*amd64' | tail -1)",
+      "PACKER_LATEST_VERSION=$(echo \"$PACKER_LATEST_URL\" | awk -F '/' '{print $6}' | sed 's/packer_//' | sed 's/_linux_amd64.zip//')",
+      "pkenv install ${PACKER_LATEST_VERSION}",
+      "pkenv use ${PACKER_LATEST_VERSION}"
+    ]
+  }
+  
+  provisioner "shell" {
+    inline = [
+      "chown -R ${var.normal_user}:${var.normal_user} /opt",
+      "chown -R ${var.normal_user}:${var.normal_user} /home/${var.normal_user}",
+      "apt-get update",
+      "apt-get autoremove -y",
+      "apt-get clean",
+      "rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
+    ]
+  }
+
+
+
+
 
   post-processors {
     post-processor "docker-tag" {
