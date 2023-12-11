@@ -12,9 +12,6 @@
     DockerImageName
         The name to be assigned to the built Docker image. Default is 'example'.
 
-    DockerContainerName
-        The name of the Docker container. Default is 'ubuntu'.
-
     RegistryUrl
         The URL of the Docker registry where the image should be pushed. Default is 'ghcr.io'.
 
@@ -60,8 +57,7 @@
 
 param (
     [string]$DockerFileName = "Dockerfile",
-    [string]$DockerImageName = "example",
-    [string]$DockerContainerName = "ubuntu",
+    [string]$DockerImageName = "ubuntu-cicd-base",
     [string]$RegistryUrl = "ghcr.io",
     [string]$RegistryUsername = "myusername",
     [string]$RegistryPassword = "mypassword",
@@ -182,7 +178,6 @@ if ($DebugMode) {
 # Diagnostic output
 Write-Debug "DockerFileName: $DockerFileName"
 Write-Debug "DockerImageName: $DockerImageName"
-Write-Debug "DockerContainerName: $DockerContainerName"
 Write-Debug "DebugMode: $DebugMode"
 
 # Checking prerequisites

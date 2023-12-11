@@ -65,7 +65,7 @@ RUN useradd -ms /bin/bash ${NORMAL_USER} && \
 # Install pyenv and the latest stable version of Python
 RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && \
     eval "$(pyenv init --path)" && \
-    pyenvLatestStable=$(pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E "^\s*[0-9]+\.[0-9]+\.[0-9]+$" | tail -1) && \
+    pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E "^\s*[0-9]+\.[0-9]+\.[0-9]+$" | tail -1) && \
     pyenv install $pyenvLatestStable && \
     pyenv global $pyenvLatestStable && \
     pip install --upgrade pip
