@@ -197,11 +197,11 @@ build {
       "source /home/${var.normal_user}/.pkenv/bin/pkenv",
       "PACKER_LATEST_URL=$(curl -sL https://releases.hashicorp.com/packer/index.json | jq -r '.versions[].builds[].url' | egrep -v 'rc|beta|alpha' | egrep 'linux.*amd64' | tail -1)",
       "PACKER_LATEST_VERSION=$(echo \"$PACKER_LATEST_URL\" | awk -F '/' '{print $6}' | sed 's/packer_//' | sed 's/_linux_amd64.zip//')",
-      "pkenv install ${PACKER_LATEST_VERSION}",
-      "pkenv use ${PACKER_LATEST_VERSION}"
+      "pkenv install $PACKER_LATEST_VERSION",
+      "pkenv use $PACKER_LATEST_VERSION"
     ]
   }
-  
+
   provisioner "shell" {
     inline = [
       "chown -R ${var.normal_user}:${var.normal_user} /opt",
@@ -212,10 +212,6 @@ build {
       "rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
     ]
   }
-
-
-
-
 
   post-processors {
     post-processor "docker-tag" {
