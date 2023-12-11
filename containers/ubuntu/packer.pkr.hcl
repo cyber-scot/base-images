@@ -214,16 +214,21 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}"]
+    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
+      "eval \"$(pyenv init --path)\"",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^  [0-9]\" | grep -vE 'dev|alpha|beta|rc' | tail -1)",
+      "pyenv install $pyenvLatestStable",
+      "pyenv global $pyenvLatestStable",
+      "pip install --upgrade pip"
       "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
       "pip install --user azure-cli"
     ]
 }
 
 provisioner "shell" {
-  environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}"]
+  environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
   execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
   inline = [
     "echo -en '\\n' | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
