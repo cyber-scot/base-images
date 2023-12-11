@@ -46,7 +46,7 @@ jobs:
         shell: pwsh
         run: |
           $workingDirectory = Join-Path -Path "${{ github.workspace }}" -ChildPath "${{ inputs.working_directory }}"
-          .\Run-Packer.ps1 `
+          .\Run-Docker.ps1 `
             -WorkingDirectory $workingDirectory `
             -PushDockerImage ${{ inputs.push_docker_image }} `
             -DebugMode ${{ inputs.enable_debug_mode }} `
