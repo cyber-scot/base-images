@@ -51,6 +51,6 @@ jobs:
             -PushDockerImage ${{ inputs.push_docker_image }} `
             -DebugMode ${{ inputs.enable_debug_mode }} `
             -DockerImageName ${{ inputs.docker_image_name }} `
-            -DockerFileName ${{ input.docker_file_name }} `
+            -DockerFileName ${{ inputs.docker_file_name }} `
             -RegistryUsername ${{ secrets.RegistryUsername }}
             -RegistryPassword ${{ secrets.RegistryPassword }}
