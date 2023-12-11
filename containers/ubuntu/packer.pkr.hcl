@@ -83,7 +83,6 @@ source "docker" "ubuntu" {
 
   changes = [
     "LABEL org.opencontainers.image.source=${var.repository}/${var.org}/${var.project}",
-    "LABEL org.opencontainers.image.description=A container used as a base cicd image",
     "LABEL org.opencontainers.image.licenses=${var.license}",
     "LABEL org.opencontainers.image.title=${var.container_name}"
   ]
