@@ -93,7 +93,6 @@ function Check-DockerExists {
     }
 }
 
-# Function to build a Docker image
 function Build-DockerImage {
     param (
         [string]$Path,
@@ -105,12 +104,12 @@ function Build-DockerImage {
     # Check if Dockerfile exists at the specified path
     if (-not (Test-Path -Path $filePath)) {
         Write-Error "Error: Dockerfile not found at $filePath. Exiting."
-        exit 1
+        return $false
     }
 
     try {
         Write-Host "Info: Building Docker image $DockerImageName from $filePath" -ForegroundColor Green
-        docker build -t $DockerImageName -f $filePath $Path | Out-Host
+        docker build -t $DockerImageName -f $filePath $Path
         if ($LASTEXITCODE -eq 0) {
             return $true
         }
@@ -175,22 +174,22 @@ Write-Debug "DebugMode: $DebugMode"
 Check-DockerExists
 
 # Execution flow
-$buildSuccess = Build-DockerImage -Path $WorkingDirectory -DockerFile $DockerFileName | Out-Host
+$buildSuccess = Build-DockerImage -Path $WorkingDirectory -DockerFile $DockerFileName
 
-if ($buildSuccess -eq $true) {
+if ($buildSuccess) {
     Write-Host "Docker build complete." -ForegroundColor Green
     if ($PushDockerImage -eq $true) {
         $pushSuccess = Push-DockerImage -ImageName "$RegistryUrl/$DockerImageName" -Registry $RegistryUrl -Username $RegistryUsername -Password $RegistryPassword
-        if ($pushSuccess -eq $true) {
+        if ($pushSuccess) {
             Write-Host "Docker image push complete." -ForegroundColor Green
         }
         else {
-            Write-Host "Docker image push failed." -ForegroundColor Green
+            Write-Host "Docker image push failed." -ForegroundColor Red
             exit 1
         }
     }
 }
 else {
-    Write-Host "Docker build failed." -ForegroundColor Green
+    Write-Host "Docker build failed." -ForegroundColor Red
     exit 1
 }
