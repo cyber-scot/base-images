@@ -119,7 +119,6 @@ source "docker" "ubuntu" {
     format("ENV NORMAL_USER_HOME=/home/%s", var.normal_user),
     format("ENV DEBIAN_FRONTEND=%s", "noninteractive"),
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
-    "ENV $PYENV_ROOT/shims:$PYENV_ROOT/bin:${local.path_var}",
     "USER ${var.normal_user}",
     "WORKDIR /home/${var.normal_user}"
   ]
