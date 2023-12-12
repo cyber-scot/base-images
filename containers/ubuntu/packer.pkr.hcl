@@ -37,6 +37,12 @@ variable "org" {
   default     = "cyber-scot"
 }
 
+variable "project_scm" {
+  description = "The name of the project, for example, the github repo"
+  type        = string
+  default     = "https://github.com"
+}
+
 variable "project" {
   description = "The name of the project, for example, the github repo"
   type        = string
@@ -113,7 +119,7 @@ source "docker" "ubuntu" {
 
   changes = [
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
-    format("LABEL org.opencontainers.image.source=%s/%s/%s", var.registry, var.org, var.project),
+    format("LABEL org.opencontainers.image.source=%s/%s/%s", var.project_scm, var.org, var.project),
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
     format("ENV NORMAL_USER_HOME=/home/%s", var.normal_user),
