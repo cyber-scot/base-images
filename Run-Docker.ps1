@@ -179,7 +179,7 @@ $buildSuccess = Build-DockerImage -Path $WorkingDirectory -DockerFile $DockerFil
 if ($buildSuccess) {
     Write-Host "Docker build complete." -ForegroundColor Green
     if ($PushDockerImage -eq $true) {
-        $pushSuccess = Push-DockerImage -ImageName "$RegistryUrl/$DockerImageName" -Registry $RegistryUrl -Username $RegistryUsername -Password $RegistryPassword
+        $pushSuccess = Push-DockerImage
         if ($pushSuccess) {
             Write-Host "Docker image push complete." -ForegroundColor Green
         }
