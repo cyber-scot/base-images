@@ -1,4 +1,4 @@
-name: 'Run Packer'
+name: 'Run Packer - Ubuntu'
 
 # Allow run manually
 on:
