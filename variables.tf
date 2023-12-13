@@ -1,13 +1,13 @@
-variable "DEBIAN_FRONTEND" {
-  description = "Debian frontend setting"
-  type        = string
-  default     = "noninteractive"
-}
-
 variable "container_name" {
   description = "The name of the container name"
   type        = string
   default     = "ci-cd-base"
+}
+
+variable "DEBIAN_FRONTEND" {
+  description = "Debian frontend setting"
+  type        = string
+  default     = "noninteractive"
 }
 
 variable "normal_user" {
