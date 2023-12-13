@@ -97,6 +97,7 @@ locals {
     "openssl1.1-compat@edge",
     "readline-dev",
     "sqlite-dev",
+    "sudo",
     "tk-dev",
     "xz-dev"
   ]

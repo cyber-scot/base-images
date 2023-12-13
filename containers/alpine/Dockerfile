@@ -39,6 +39,7 @@ RUN adduser -s /bin/bash -D -h /home/${NORMAL_USER} ${NORMAL_USER} && \
     openssl1.1-compat@edge \
     readline-dev \
     sqlite-dev \
+    sudo \
     tk-dev \
     xz-dev && \
     apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache \
