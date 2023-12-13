@@ -86,7 +86,7 @@ RUN chown -R ${NORMAL_USER}:${NORMAL_USER} /opt && \
 
 RUN curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains("tfsec-linux-amd64")) | .browser_download_url') -o /tmp/tfsec && \
     chmod +x /tmp/tfsec && \
-    mv tfsec /usr/local/bin
+    mv /tmp/tfsec /usr/local/bin
 
 USER ${NORMAL_USER}
 WORKDIR /home/${NORMAL_USER}
