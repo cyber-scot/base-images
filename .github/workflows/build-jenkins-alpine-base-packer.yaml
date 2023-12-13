@@ -1,4 +1,4 @@
-name: 'Run Packer - Alpine'
+name: 'Run Packer - Jenkins Alpine'
 
 # Allow run manually
 on:

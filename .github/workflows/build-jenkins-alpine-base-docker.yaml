@@ -1,4 +1,4 @@
-name: 'Run Docker - Alpine'
+name: 'Run Docker - Jenkins Alpine'
 
 # Allow run manually
 on:
