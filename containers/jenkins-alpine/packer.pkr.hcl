@@ -123,6 +123,7 @@ build {
   sources = ["source.docker.alpine"]
 
   provisioner "shell" {
+    environment_vars = ["USER=root"]
     execute_command = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories",
@@ -133,7 +134,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/PowerShell/releases/latest | jq -r '.assets[] | select(.name | endswith(\"linux-musl-x64.tar.gz\")) | .browser_download_url')",
@@ -147,7 +148,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
@@ -160,7 +161,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "pwsh -Command Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted",
@@ -171,7 +172,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
@@ -181,7 +182,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec",
@@ -192,7 +193,7 @@ build {
 
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
@@ -202,7 +203,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "chown -R ${var.normal_user}:${var.normal_user} /opt",
