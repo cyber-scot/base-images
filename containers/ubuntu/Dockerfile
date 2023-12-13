@@ -35,6 +35,7 @@ RUN useradd -ms /bin/bash ${NORMAL_USER} && \
     libbz2-dev \
     ca-certificates \
     curl \
+    dos2unix \
     gcc \
     gnupg \
     gnupg2 \

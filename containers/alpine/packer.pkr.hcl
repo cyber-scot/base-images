@@ -85,6 +85,7 @@ locals {
     "bzip2-dev",
     "coreutils",
     "curl",
+    "dos2unix",
     "git",
     "icu-libs",
     "jq",

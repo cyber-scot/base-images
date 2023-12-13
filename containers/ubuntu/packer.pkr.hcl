@@ -85,6 +85,7 @@ locals {
     "libbz2-dev",
     "ca-certificates",
     "curl",
+    "dos2unix",
     "gcc",
     "gnupg",
     "gnupg2",

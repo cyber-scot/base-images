@@ -27,6 +27,7 @@ RUN adduser -s /bin/bash -D -h /home/${NORMAL_USER} ${NORMAL_USER} && \
     bzip2-dev \
     coreutils \
     curl \
+    dos2unix \
     git \
     icu-libs \
     jq \
