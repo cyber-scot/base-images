@@ -10,7 +10,7 @@ packer {
 variable "container_name" {
   description = "The name of the container name"
   type        = string
-  default     = "ubuntu-ci-cd-base"
+  default     = "alpine-ci-cd-base"
 }
 
 variable "license" {
@@ -22,7 +22,7 @@ variable "license" {
 variable "name" {
   description = "The name of the image"
   type        = string
-  default     = "ubuntu-cicd-base"
+  default     = "alpine-cicd-base"
 }
 
 variable "normal_user" {
@@ -80,41 +80,30 @@ variable "tags" {
 locals {
   path_var = "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt:/opt/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.local/bin:/home/${var.normal_user}/.local:/home/${var.normal_user}/.tfenv:/home/${var.normal_user}/.tfenv/bin:/home/${var.normal_user}/.pkenv:/home/${var.normal_user}/.pkenv/bin:/home/${var.normal_user}/.pyenv:/home/${var.normal_user}/.pyenv/bin:/home/${var.normal_user}/.pyenv/shims:/home/${var.normal_user}/.local/bin"
   packages = [
-    "apt-transport-https",
     "bash",
-    "libbz2-dev",
-    "ca-certificates",
+    "build-base",
+    "bzip2-dev",
+    "coreutils",
     "curl",
-    "gcc",
-    "gnupg",
-    "gnupg2",
     "git",
+    "icu-libs",
     "jq",
     "libffi-dev",
-    "libicu-dev",
-    "make",
-    "software-properties-common",
-    "libsqlite3-dev",
-    "libssl-dev",
-    "unzip",
-    "wget",
-    "zip",
-    "zlib1g-dev",
-    "build-essential",
-    "sudo",
-    "libreadline-dev",
-    "llvm",
-    "libncurses5-dev",
-    "xz-utils",
-    "tk-dev",
     "libxml2-dev",
-    "libxmlsec1-dev",
-    "liblzma-dev"
+    "libxslt-dev",
+    "linux-headers",
+    "ncurses-dev",
+    "openssl-dev",
+    "openssl1.1-compat@edge",
+    "readline-dev",
+    "sqlite-dev",
+    "tk-dev",
+    "xz-dev"
   ]
 }
 
-source "docker" "ubuntu" {
-  image  = "ubuntu:latest"
+source "docker" "alpine" {
+  image  = "alpine:latest"
   commit = true
 
   changes = [
@@ -123,7 +112,6 @@ source "docker" "ubuntu" {
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
     format("ENV NORMAL_USER_HOME=/home/%s", var.normal_user),
-    format("ENV DEBIAN_FRONTEND=%s", "noninteractive"),
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
     "USER ${var.normal_user}",
     "WORKDIR /home/${var.normal_user}"
@@ -131,25 +119,36 @@ source "docker" "ubuntu" {
 }
 
 build {
-  sources = ["source.docker.ubuntu"]
+  sources = ["source.docker.alpine"]
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "rm -rf /bin/sh && ln -sf /bin/bash /bin/sh",
-      "useradd -ms /bin/bash ${var.normal_user}",
-      "mkdir -p /home/linuxbrew",
-      "chown -R ${var.normal_user}:${var.normal_user} /home/linuxbrew",
-      "apt-get update",
-      "apt-get dist-upgrade -y",
-      "apt-get install -y ${join(" ", local.packages)}",
+      "adduser -s /bin/bash -D -h /home/${var.normal_user} ${var.normal_user}",
+      "echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories",
+      "apk add --no-cache ${join(" ", local.packages)}",
+      "apk -X https://dl-cdn.alpinelinux.org/alpine/edge/main add --no-cache lttng-ust",
       "echo 'PATH=${local.path_var}' > /etc/environment"
     ]
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}"]
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/PowerShell/releases/latest | jq -r '.assets[] | select(.name | endswith(\"linux-musl-x64.tar.gz\")) | .browser_download_url')",
+      "curl -L $POWERSHELL_RELEASE_URL -o /tmp/powershell.tar.gz",
+      "mkdir -p /opt/microsoft/powershell/7",
+      "tar zxf /tmp/powershell.tar.gz -C /opt/microsoft/powershell/7",
+      "chmod +x /opt/microsoft/powershell/7/pwsh",
+      "ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh",
+      "ln -s /usr/bin/pwsh /usr/bin/powershell"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
@@ -162,20 +161,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
-    inline = [
-      "curl -sSLO https://packages.microsoft.com/config/ubuntu/$(grep -oP '(?<=^DISTRIB_RELEASE=).+' /etc/lsb-release | tr -d '\"')/packages-microsoft-prod.deb",
-      "dpkg -i packages-microsoft-prod.deb",
-      "rm -f packages-microsoft-prod.deb",
-      "apt-get update",
-      "apt-get install -y powershell",
-      "ln -sf /usr/bin/pwsh /usr/bin/powershell"
-    ]
-  }
-
-  provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
+    environment_vars = ["PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "pwsh -Command Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted",
@@ -186,7 +172,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
@@ -196,7 +182,17 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
+      "curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o tfsec",
+      "chmod +x tfsec",
+      "mv tfsec /usr/local/bin"
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
@@ -206,23 +202,19 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}"]
+    environment_vars = ["PATH=${local.path_var}"]
     execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "chown -R ${var.normal_user}:${var.normal_user} /opt",
       "chown -R ${var.normal_user}:${var.normal_user} /home/${var.normal_user}",
-      "apt-get update",
-      "apt-get autoremove -y",
-      "apt-get clean",
-      "rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*"
     ]
   }
 
   provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    environment_vars = ["PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "source ~/.profile" ,
+      "source ~/.profile",
       "eval \"$(pyenv init --path)\"",
       "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
       "pyenv install $pyenvLatestStable",
@@ -230,19 +222,6 @@ build {
       "pip install --upgrade pip",
       "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
       "pip install --user azure-cli"
-    ]
-  }
-
-
-  provisioner "shell" {
-    environment_vars = ["DEBIAN_FRONTEND=noninteractive", "PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
-    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
-    inline = [
-      "echo -en '\\n' | /bin/bash -c \"$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\"",
-      "echo 'eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"' >> /home/${var.normal_user}/.bashrc",
-      "eval \"$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)\"",
-      "brew install gcc",
-      "brew install tfsec"
     ]
   }
 
