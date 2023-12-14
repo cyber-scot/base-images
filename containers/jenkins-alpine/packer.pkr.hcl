@@ -123,8 +123,7 @@ build {
   sources = ["source.docker.alpine"]
 
   provisioner "shell" {
-    environment_vars = ["USER=root"]
-    execute_command = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories",
       "apk add --no-cache ${join(" ", local.packages)}",
@@ -135,7 +134,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/PowerShell/releases/latest | jq -r '.assets[] | select(.name | endswith(\"linux-musl-x64.tar.gz\")) | .browser_download_url')",
       "curl -L $POWERSHELL_RELEASE_URL -o /tmp/powershell.tar.gz",
@@ -149,7 +148,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
       "eval \"$(pyenv init --path)\"",
@@ -162,7 +161,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "pwsh -Command Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted",
       "pwsh -Command Install-Module -Name Az -Force -AllowClobber -Scope AllUsers -Repository PSGallery",
@@ -173,7 +172,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
       "tfenv install",
@@ -183,7 +182,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec",
       "chmod +x /tmp/tfsec",
@@ -194,7 +193,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
       "pkenv install latest",
@@ -204,7 +203,7 @@ build {
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "chown -R ${var.normal_user}:${var.normal_user} /opt",
       "chown -R ${var.normal_user}:${var.normal_user} /home/${var.normal_user}",
@@ -226,7 +225,7 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "USER=${var.normal_user}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "jenkins-plugin-cli --plugins git"
