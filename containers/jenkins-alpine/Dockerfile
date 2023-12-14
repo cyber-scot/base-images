@@ -100,6 +100,7 @@ RUN git clone https://github.com/iamhsa/pkenv.git /opt/.pkenv && \
     pkenv use ${PACKER_LATEST_VERSION}
 
 RUN jenkins-plugin-cli --plugins \
+    ansicolor \
     apache-httpcomponents-client-4-api \
     azure-credentials \
     azure-ad \

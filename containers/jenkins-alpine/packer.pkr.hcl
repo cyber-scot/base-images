@@ -117,6 +117,7 @@ locals {
   ]
 
   jenkins_plugins = [
+    "ansicolor",
     "apache-httpcomponents-client-4-api",
     "azure-credentials",
     "azure-ad",
