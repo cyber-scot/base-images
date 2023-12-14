@@ -200,9 +200,11 @@ build {
     environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/opt/.pyenv", "USER=root"]
     execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
+      "mkdir -p /opt/tfsec",
       "curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1",
       "chmod +x /tmp/tfsec",
-      "mv /tmp/tfsec /usr/local/bin"
+      "mv /tmp/tfsec /opt/tfsec/tfsec",
+      "ln -fs /opt/tfsec/tfsec /usr/bin/tfsec"
     ]
   }
 
@@ -232,6 +234,7 @@ build {
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "git clone https://github.com/iamhsa/pkenv.git /opt/.pkenv",
+      "cd /opt/.pkenv",
       "pkenv install latest",
       "pkenv use latest"
     ]
