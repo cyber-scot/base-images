@@ -116,7 +116,6 @@ source "docker" "alpine" {
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
-    "USER ${var.normal_user}",
   ]
 }
 
