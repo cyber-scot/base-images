@@ -118,7 +118,7 @@ source "docker" "alpine" {
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
   ]
 
-    run_command = ["-d", "-i", "-t", "--entrypoint=/bin/sh", "--user=root", "--", "{{.Image}}"]
+  run_command = ["-d", "-i", "-t", "--user=root", "--entrypoint=/sbin/tini", "--", "{{.Image}}", "--", "/usr/local/bin/jenkins.sh"]
 }
 
 build {
@@ -191,7 +191,6 @@ build {
       "mv /tmp/tfsec /usr/local/bin"
     ]
   }
-
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
