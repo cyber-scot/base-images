@@ -99,4 +99,29 @@ RUN pip3 install --user \
 # Install Azure-CLI as seperate step for cacheing speed
 RUN pip3 install --user azure-cli
 
-RUN jenkins-plugin-cli --plugins git
+RUN jenkins-plugin-cli --plugins \
+    apache-httpcomponents-client-4-api \
+    azure-credentials \
+    azure-ad \
+    bouncycastle-api \
+    caffeine-api \
+    credentials \
+    credentials-binding \
+    display-url-api \
+    git \
+    git-client \
+    instance-identity \
+    jakarta-activation-api \
+    jakarta-mail-api \
+    mailer \
+    mina-sshd-api-common \
+    mina-sshd-api-core \
+    plain-credentials \
+    powershell \
+    scm-api \
+    script-security \
+    ssh-credentials \
+    structs \
+    trilead-api \
+    workflow-scm-step \
+    workflow-step-api

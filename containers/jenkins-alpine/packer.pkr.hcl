@@ -103,6 +103,34 @@ locals {
     "xz-dev",
     "xterm"
   ]
+
+  jenkins_plugins = [
+    "apache-httpcomponents-client-4-api",
+    "azure-credentials",
+    "azure-ad",
+    "bouncycastle-api",
+    "caffeine-api",
+    "credentials",
+    "credentials-binding",
+    "display-url-api",
+    "git",
+    "git-client",
+    "instance-identity",
+    "jakarta-activation-api",
+    "jakarta-mail-api",
+    "mailer",
+    "mina-sshd-api-common",
+    "mina-sshd-api-core",
+    "plain-credentials",
+    "powershell",
+    "scm-api",
+    "script-security",
+    "ssh-credentials",
+    "structs",
+    "trilead-api",
+    "workflow-scm-step",
+    "workflow-step-api"
+  ]
 }
 
 source "docker" "alpine" {
@@ -125,7 +153,7 @@ build {
   sources = ["source.docker.alpine"]
 
   provisioner "shell" {
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories",
       "apk add --no-cache ${join(" ", local.packages)}",
@@ -229,7 +257,7 @@ build {
     environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "jenkins-plugin-cli --plugins git"
+      "jenkins-plugin-cli --plugins ${join(" ", local.jenkins_plugins)}"
     ]
   }
 

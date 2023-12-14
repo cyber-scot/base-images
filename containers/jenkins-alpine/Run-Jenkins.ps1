@@ -1,18 +1,30 @@
-# Define the image name
-$ImageName = "ghcr.io/cyber-scot/base-images/jenkins-alpine-cicd-base:latest"
+param (
+    [string]$ImageName = "ghcr.io/cyber-scot/base-images/jenkins-alpine-cicd-base:latest",
+    [string]$ContainerName = "jenkins",
+    [int]$ExternalWebPort = 8080,
+    [int]$InternalWebPort = 8080,
+    [int]$ExternalAgentPort = 50000,
+    [int]$InternalAgentPort = 50000,
+    [string]$VolumeMapping = "jenkins_home:/var/jenkins_home"
+)
 
 # Pull the latest Jenkins Docker image
 docker pull $ImageName
 
-# Set the Jenkins container parameters
-$jenkinsParams = @{
-    "name" = "jenkins"
-    "publish" = "8080:8080" # Maps port 8080 of the container to port 8080 on the host
-    "volume" = "jenkins_home:/var/jenkins_home" # Maps the Jenkins home directory to a volume
-    "detach" = $True # Runs the container in the background
-    "privileged" = $True # Grants additional privileges to the container
-    "image" = $ImageName
-}
+# Run the Jenkins container with specified parameters
+$ContainerId = $(docker run -d `
+-p "${ExternalWebPort}:${InternalWebPort}" `
+-p "${ExternalAgentPort}:${InternalAgentPort}" `
+--name $ContainerName `
+--volume $VolumeMapping `
+--privileged `
+$ImageName)
 
-# Run the Jenkins container
-docker run @jenkinsParams
+Write-Host "Success: The container ID is: ${ContainerId}" -ForegroundColor Green
+
+# Wait for 7 seconds
+Start-Sleep -Seconds 7
+
+# Retrieve the initial Admin Password
+$JenkinsTempPassword = $(docker exec $ContainerName cat /var/jenkins_home/secrets/initialAdminPassword)
+Write-Host "Success: Jenkins temp password is ${JenkinsTempPassword}" -ForegroundColor Green
