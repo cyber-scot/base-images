@@ -7,11 +7,11 @@ LABEL org.opencontainers.image.source=https://github.com/cyber-scot/base-images
 ARG NORMAL_USER=jenkins
 
 # Environment variables for pyenv
-ENV PYENV_ROOT /home/${NORMAL_USER}/.pyenv
+ENV PYENV_ROOT /opt/.pyenv
 ENV PATH $PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH
 
 #Set path vars
-ENV PATH="/var/jenkins_home:/var/jenkins_home/.local:/var/jenkins_home/.local/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt:/opt/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.local/bin:/home/${NORMAL_USER}/.local:/home/${NORMAL_USER}:/home/${NORMAL_USER}/.tfenv:/home/${NORMAL_USER}/.tfenv/bin:/home/${NORMAL_USER}/.pkenv:/home/${NORMAL_USER}/.pkenv/bin:/home/${NORMAL_USER}/.pyenv:/home/${NORMAL_USER}/.pyenv/bin:/home/${NORMAL_USER}/.pyenv/shims:/home/${NORMAL_USER}/.local/bin"
+ENV PATH="/var/jenkins_home:/var/jenkins_home/.local:/var/jenkins_home/.local/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt:/opt/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.local/bin:/var/jenkins_home/.local:/home/${NORMAL_USER}:/opt/.tfenv:/opt/.tfenv/bin:/opt/.pkenv:/opt/.pkenv/bin:/opt/.pyenv:/opt/.pyenv/bin:/opt/.pyenv/shims:/opt/.local/bin"
 ENV PATHVAR="PATH=${PATH}"
 
 USER root
@@ -44,6 +44,8 @@ RUN echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/
     lttng-ust && \
     echo $PATHVAR > /etc/environmentecho $PATHVAR > /etc/environment
 
+RUN chown -R ${NORMAL_USER}:${NORMAL_USER} /opt
+
 # Download the PowerShell '.tar.gz' archive
 RUN POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/PowerShell/releases/latest | jq -r '.assets[] | select(.name | endswith("linux-musl-x64.tar.gz")) | .browser_download_url') && \
     curl -L $POWERSHELL_RELEASE_URL -o /tmp/powershell.tar.gz && \
@@ -53,8 +55,23 @@ RUN POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/
     ln -s /opt/microsoft/powershell/7/pwsh /usr/bin/pwsh && \
     ln -s /usr/bin/pwsh /usr/bin/powershell
 
+#Install Azure Modules for Powershell - This can take a while, so setting as final step to shorten potential rebuilds
+RUN pwsh -Command Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted && \
+    pwsh -Command Install-Module -Name Az -Force -AllowClobber -Scope AllUsers -Repository PSGallery && \
+    pwsh -Command Install-Module -Name Microsoft.Graph -Force -AllowClobber -Scope AllUsers -Repository PSGallery && \
+    pwsh -Command Install-Module -Name Pester -Force -AllowClobber -Scope AllUsers -Repository PSGallery
+
+RUN mkdir -p /opt/tfsec && \
+    curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains("tfsec-linux-amd64")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1 && \
+    chmod +x /tmp/tfsec && \
+    mv /tmp/tfsec /opt/tfsec/tfsec && \
+    ln -fs /opt/tfsec/tfsec /usr/bin/tfsec
+
+USER ${NORMAL_USER}
+WORKDIR /var/jenkins_home
+
 ## Install pyenv and the latest stable version of Python
-RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && \
+RUN git clone https://github.com/pyenv/pyenv.git /opt/.pyenv && \
     eval "$(pyenv init --path)" && \
     pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E "^\s*[0-9]+\.[0-9]+\.[0-9]+$" | tail -1) && \
     pyenv install $pyenvLatestStable && \
@@ -62,6 +79,7 @@ RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && 
     pip install --upgrade pip && \
     pip install \
     pip-system-certs \
+    ansible \
     azure-cli \
     pipenv \
     virtualenv \
@@ -69,34 +87,16 @@ RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && 
     checkov \
     pywinrm
 
-#Install Azure Modules for Powershell - This can take a while, so setting as final step to shorten potential rebuilds
-RUN pwsh -Command Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted && \
-    pwsh -Command Install-Module -Name Az -Force -AllowClobber -Scope AllUsers -Repository PSGallery && \
-    pwsh -Command Install-Module -Name Microsoft.Graph -Force -AllowClobber -Scope AllUsers -Repository PSGallery && \
-    pwsh -Command Install-Module -Name Pester -Force -AllowClobber -Scope AllUsers -Repository PSGallery
-
-
-RUN git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${NORMAL_USER}/.tfenv && \
+RUN git clone --depth=1 https://github.com/tfutils/tfenv.git /opt/.tfenv && \
     tfenv install && \
     tfenv use
 
 # Install Packer Env
-RUN git clone https://github.com/iamhsa/pkenv.git /home/${NORMAL_USER}/.pkenv && \
+RUN git clone https://github.com/iamhsa/pkenv.git /opt/.pkenv && \
     PACKER_LATEST_URL=$(curl -sL https://releases.hashicorp.com/packer/index.json | jq -r '.versions[].builds[].url' | egrep -v 'rc|beta|alpha' | egrep 'linux.*amd64'  | tail -1) && \
     PACKER_LATEST_VERSION=$(echo "$PACKER_LATEST_URL" | awk -F '/' '{print $6}' | sed 's/packer_//' | sed 's/_linux_amd64.zip//') && \
     pkenv install ${PACKER_LATEST_VERSION} && \
     pkenv use ${PACKER_LATEST_VERSION}
-
-RUN chown -R ${NORMAL_USER}:${NORMAL_USER} /opt && \
-    chown -R ${NORMAL_USER}:${NORMAL_USER} /home/${NORMAL_USER}
-
-RUN curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains("tfsec-linux-amd64")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1 && \
-    chmod +x /tmp/tfsec && \
-    mv /tmp/tfsec /usr/local/bin
-
-
-USER ${NORMAL_USER}
-WORKDIR /home/${NORMAL_USER}
 
 RUN jenkins-plugin-cli --plugins \
     apache-httpcomponents-client-4-api \

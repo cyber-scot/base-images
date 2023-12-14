@@ -78,7 +78,7 @@ variable "tags" {
 }
 
 locals {
-  path_var = "/var/jenkins_home:/var/jenkins_home/.local:/var/jenkins_home/.local/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt:/opt/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.local/bin:/home/${var.normal_user}/.local:/home/${var.normal_user}/.tfenv:/home/${var.normal_user}/.tfenv/bin:/home/${var.normal_user}/.pkenv:/home/${var.normal_user}/.pkenv/bin:/home/${var.normal_user}/.pyenv:/home/${var.normal_user}/.pyenv/bin:/home/${var.normal_user}/.pyenv/shims:/home/${var.normal_user}/.local/bin"
+  path_var = "/var/jenkins_home:/var/jenkins_home/.local:/var/jenkins_home/.local/bin:/opt/java/openjdk/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt:/opt/bin:/home/linuxbrew/.linuxbrew/bin:/home/linuxbrew/.local/bin:/home/${var.normal_user}/.local:/opt/.tfenv:/opt/.tfenv/bin:/opt/.pkenv:/opt/.pkenv/bin:/opt/.pyenv:/opt/.pyenv/bin:/opt/.pyenv/shims:/opt/.local/bin"
   packages = [
     "bash",
     "build-base",
@@ -155,7 +155,7 @@ source "docker" "alpine" {
     format("LABEL org.opencontainers.image.source=%s/%s/%s", var.project_scm, var.org, var.project),
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
-    format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
+    format("ENV PYENV_ROOT=%s", "/opt/.pyenv"),
   ]
 
   run_command = ["-d", "-i", "-t", "--user=root", "--entrypoint=/sbin/tini", "--", "{{.Image}}", "--", "/usr/local/bin/jenkins.sh"]
@@ -178,6 +178,14 @@ build {
     environment_vars = ["PATH=${local.path_var}", "USER=root"]
     execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
+      "chown -R ${var.normal_user}:${var.normal_user} /opt",
+    ]
+  }
+
+  provisioner "shell" {
+    environment_vars = ["PATH=${local.path_var}", "USER=root"]
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
+    inline = [
       "POWERSHELL_RELEASE_URL=$(curl -s -L https://api.github.com/repos/PowerShell/PowerShell/releases/latest | jq -r '.assets[] | select(.name | endswith(\"linux-musl-x64.tar.gz\")) | .browser_download_url')",
       "curl -L $POWERSHELL_RELEASE_URL -o /tmp/powershell.tar.gz",
       "mkdir -p /opt/microsoft/powershell/7",
@@ -189,16 +197,12 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "USER=root"]
+    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/opt/.pyenv", "USER=root"]
     execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "git clone https://github.com/pyenv/pyenv.git /home/${var.normal_user}/.pyenv",
-      "eval \"$(pyenv init --path)\"",
-      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
-      "pyenv install $pyenvLatestStable",
-      "pyenv global $pyenvLatestStable",
-      "pip install --upgrade pip",
-      "pip install ${join(" ", local.pip_packages)}"
+      "curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1",
+      "chmod +x /tmp/tfsec",
+      "mv /tmp/tfsec /usr/local/bin"
     ]
   }
 
@@ -214,46 +218,41 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
+    environment_vars = ["PATH=${local.path_var}"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "git clone --depth=1 https://github.com/tfutils/tfenv.git /home/${var.normal_user}/.tfenv",
+      "git clone --depth=1 https://github.com/tfutils/tfenv.git /opt/.tfenv",
       "tfenv install",
       "tfenv use"
     ]
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv", "USER=root"]
-    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
+    environment_vars = ["PATH=${local.path_var}"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1",
-      "chmod +x /tmp/tfsec",
-      "mv /tmp/tfsec /usr/local/bin"
-    ]
-  }
-
-  provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
-    inline = [
-      "git clone https://github.com/iamhsa/pkenv.git /home/${var.normal_user}/.pkenv",
+      "git clone https://github.com/iamhsa/pkenv.git /opt/.pkenv",
       "pkenv install latest",
       "pkenv use latest"
     ]
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "USER=root"]
-    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
+    environment_vars = ["PATH=${local.path_var}"]
+    execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "chown -R ${var.normal_user}:${var.normal_user} /opt",
-      "chown -R ${var.normal_user}:${var.normal_user} /home/${var.normal_user}",
+      "git clone https://github.com/pyenv/pyenv.git /opt/.pyenv",
+      "eval \"$(pyenv init --path)\"",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
+      "pyenv install $pyenvLatestStable",
+      "pyenv global $pyenvLatestStable",
+      "pip install --upgrade pip",
+      "pip install ${join(" ", local.pip_packages)}"
     ]
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
+    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/opt/.pyenv"]
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "jenkins-plugin-cli --plugins ${join(" ", local.jenkins_plugins)}"
