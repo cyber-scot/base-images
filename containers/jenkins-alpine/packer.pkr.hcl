@@ -217,6 +217,8 @@ build {
     execute_command  = "sudo -Hu ${var.normal_user} sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "eval \"$(pyenv init --path)\"",
+      "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
+      "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
       "pip install --upgrade pip",
       "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
