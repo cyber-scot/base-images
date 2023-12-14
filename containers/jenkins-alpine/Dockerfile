@@ -60,7 +60,14 @@ RUN git clone https://github.com/pyenv/pyenv.git /home/${NORMAL_USER}/.pyenv && 
     pyenv install $pyenvLatestStable && \
     pyenv global $pyenvLatestStable && \
     pip install --upgrade pip && \
-    pip install pip-system-certs
+    pip install \
+    pip-system-certs \
+    azure-cli \
+    pipenv \
+    virtualenv \
+    terraform-compliance \
+    checkov \
+    pywinrm
 
 #Install Azure Modules for Powershell - This can take a while, so setting as final step to shorten potential rebuilds
 RUN pwsh -Command Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted && \
@@ -89,17 +96,6 @@ RUN curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/lates
 
 USER ${NORMAL_USER}
 WORKDIR /home/${NORMAL_USER}
-
-RUN pip3 install --user \
-    pip-system-certs \
-    pipenv \
-    virtualenv \
-    terraform-compliance \
-    checkov \
-    pywinrm
-
-# Install Azure-CLI as seperate step for cacheing speed
-RUN pip3 install --user azure-cli
 
 RUN jenkins-plugin-cli --plugins \
     apache-httpcomponents-client-4-api \
