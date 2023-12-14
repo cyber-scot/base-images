@@ -123,7 +123,7 @@ build {
   sources = ["source.docker.alpine"]
 
   provisioner "shell" {
-    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
+    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
       "echo '@edge https://dl-cdn.alpinelinux.org/alpine/edge/testing' >> /etc/apk/repositories",
       "apk add --no-cache ${join(" ", local.packages)}",
