@@ -110,6 +110,7 @@ source "docker" "alpine" {
   commit = true
 
   changes = [
+    "USER root",
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("LABEL org.opencontainers.image.source=%s/%s/%s", var.project_scm, var.org, var.project),
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
