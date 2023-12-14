@@ -110,13 +110,15 @@ source "docker" "alpine" {
   commit = true
 
   changes = [
-    "USER root",
+    "USER ${var.normal_user}",
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("LABEL org.opencontainers.image.source=%s/%s/%s", var.project_scm, var.org, var.project),
     format("LABEL org.opencontainers.image.title=%s", var.container_name),
     format("ENV PATH=%s", local.path_var),
     format("ENV PYENV_ROOT=%s", "/home/${var.normal_user}/.pyenv"),
   ]
+
+    run_command = ["-d", "-i", "-t", "--entrypoint=/bin/sh", "--user=root", "--", "{{.Image}}"]
 }
 
 build {
