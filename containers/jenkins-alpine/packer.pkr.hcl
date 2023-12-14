@@ -104,6 +104,18 @@ locals {
     "xterm"
   ]
 
+  pip_packages = [
+      "pip-system-certs",
+      "pipenv",
+      "virtualenv" ,
+      "terraform-compliance",
+      "black",
+      "ansible",
+      "checkov",
+      "pywinrm",
+      "azure-cli"
+  ]
+
   jenkins_plugins = [
     "apache-httpcomponents-client-4-api",
     "azure-credentials",
@@ -186,7 +198,7 @@ build {
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
       "pip install --upgrade pip",
-      "pip install pip-system-certs"
+      "pip install ${join(" ", local.pip_packages)}"
     ]
   }
 
@@ -249,9 +261,6 @@ build {
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
       "pip install --upgrade pip",
-      "pip install --user pip-system-certs",
-      "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
-      "pip install --user azure-cli"
     ]
   }
 
