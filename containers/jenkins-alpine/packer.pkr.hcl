@@ -185,7 +185,8 @@ build {
       "pyenvLatestStable=$(pyenv install --list | grep -v - | grep -E \"^\\s*[0-9]+\\.[0-9]+\\.[0-9]+$\" | tail -1)",
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
-      "pip install --upgrade pip"
+      "pip install --upgrade pip",
+      "pip install pip-system-certs"
     ]
   }
 
@@ -248,6 +249,7 @@ build {
       "pyenv install $pyenvLatestStable",
       "pyenv global $pyenvLatestStable",
       "pip install --upgrade pip",
+      "pip install --user pip-system-certs",
       "pip install --user pipenv virtualenv terraform-compliance checkov pywinrm",
       "pip install --user azure-cli"
     ]
