@@ -85,7 +85,7 @@ RUN git clone https://github.com/iamhsa/pkenv.git /home/${NORMAL_USER}/.pkenv &&
 RUN chown -R ${NORMAL_USER}:${NORMAL_USER} /opt && \
     chown -R ${NORMAL_USER}:${NORMAL_USER} /home/${NORMAL_USER}
 
-RUN curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains("tfsec-linux-amd64")) | .browser_download_url') -o /tmp/tfsec && \
+RUN curl -s -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains("tfsec-linux-amd64")) | .browser_download_url') -o /tmp/tfsec && \
     chmod +x /tmp/tfsec && \
     mv /tmp/tfsec /usr/local/bin
 

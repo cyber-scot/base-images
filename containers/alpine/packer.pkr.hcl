@@ -184,15 +184,14 @@ build {
   }
 
   provisioner "shell" {
-    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv"]
-    execute_command  = "sh -c '{{ .Vars }} {{ .Path }}'"
+    environment_vars = ["PATH=${local.path_var}", "PYENV_ROOT=/home/${var.normal_user}/.pyenv", "USER=root"]
+    execute_command  = "sudo -Hu root sh -c '{{ .Vars }} {{ .Path }}'"
     inline = [
-      "curl -L $(curl -s -L https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec",
+      "curl -sSL $(curl -sSL https://api.github.com/repos/tfsec/tfsec/releases/latest | jq -r '.assets[] | select(.name | contains(\"tfsec-linux-amd64\")) | .browser_download_url') -o /tmp/tfsec > /dev/null 2>&1",
       "chmod +x /tmp/tfsec",
       "mv /tmp/tfsec /usr/local/bin"
     ]
   }
-
 
   provisioner "shell" {
     environment_vars = ["PATH=${local.path_var}"]
