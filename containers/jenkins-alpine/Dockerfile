@@ -104,19 +104,23 @@ RUN jenkins-plugin-cli --plugins \
     apache-httpcomponents-client-4-api \
     azure-credentials \
     azure-ad \
+    branch-api \
     bouncycastle-api \
     caffeine-api \
+    cloudbees-folder \
     credentials \
     credentials-binding \
     display-url-api \
     git \
     git-client \
+    github \
     instance-identity \
     jakarta-activation-api \
     jakarta-mail-api \
     mailer \
     mina-sshd-api-common \
     mina-sshd-api-core \
+    pipeline-utility-steps \
     plain-credentials \
     powershell \
     scm-api \
@@ -124,5 +128,7 @@ RUN jenkins-plugin-cli --plugins \
     ssh-credentials \
     structs \
     trilead-api \
+    workflow-aggregator \
+    workflow-multibranch \
     workflow-scm-step \
     workflow-step-api
